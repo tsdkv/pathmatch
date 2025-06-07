@@ -9,8 +9,7 @@ option go_package = "./pathmatchpb;pathmatchpb";
 // Segments = Segment { "/" Segment } ;
 // Segment  = "*" | "**" | LITERAL | Variable ;
 // Variable = "{" FieldPath [ "=" Segments ] "}" ;
-// FieldPath = IDENT { "." IDENT } ;
-message PathMatch {
+message PathTemplate {
   repeated Segment segments = 1;
 }
 

@@ -163,7 +163,7 @@ var (
 
 // ParseTemplate parses a path template string and returns a PathMatch object
 // or an error if the template is invalid.
-func ParseTemplate(s string) (*pathmatchpb.PathMatch, error) {
+func ParseTemplate(s string) (*pathmatchpb.PathTemplate, error) {
 	lex := NewLexer(s)
 	if lex == nil {
 		return nil, fmt.Errorf("failed to create lexer for input: %s", s)
@@ -176,7 +176,7 @@ func ParseTemplate(s string) (*pathmatchpb.PathMatch, error) {
 	return parseSegments(lex)
 }
 
-func parseSegments(lex *lexer) (*pathmatchpb.PathMatch, error) {
+func parseSegments(lex *lexer) (*pathmatchpb.PathTemplate, error) {
 	segments := make([]*pathmatchpb.Segment, 0)
 
 	for {
@@ -195,7 +195,7 @@ func parseSegments(lex *lexer) (*pathmatchpb.PathMatch, error) {
 		segments = append(segments, segment)
 	}
 
-	return &pathmatchpb.PathMatch{Segments: segments}, nil
+	return &pathmatchpb.PathTemplate{Segments: segments}, nil
 }
 
 func parseSegment(lex *lexer) (*pathmatchpb.Segment, error) {

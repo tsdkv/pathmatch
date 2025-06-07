@@ -31,11 +31,11 @@ func TestLexerSimple(t *testing.T) {
 func TestParse(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected pathmatchpb.PathMatch
+		expected pathmatchpb.PathTemplate
 	}{
 		{
 			input: "/a/b/c/d/e/f/g",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "a"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "b"}}},
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			input: "/with/wildcard/*",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "wildcard"}}},
@@ -59,7 +59,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			input: "/with/double/wildcard/**",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "double"}}},
@@ -69,8 +69,29 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			input: "/with/double/wildcard/{varame=path/**}",
+			expected: pathmatchpb.PathTemplate{
+				Segments: []*pathmatchpb.Segment{
+					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
+					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "double"}}},
+					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "wildcard"}}},
+					{
+						Segment: &pathmatchpb.Segment_Variable{
+							Variable: &pathmatchpb.Variable{
+								Name: "varame",
+								Segments: []*pathmatchpb.Segment{
+									{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "path"}}},
+									{Segment: &pathmatchpb.Segment_DoubleStar{DoubleStar: &pathmatchpb.DoubleStar{}}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
 			input: "/with/variable/{name}",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "variable"}}},
@@ -80,7 +101,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			input: "/with/variable/{name=/some/other/path}",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "variable"}}},
@@ -101,7 +122,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			input: "/with/variable/{name=/some/other/path}/and/more",
-			expected: pathmatchpb.PathMatch{
+			expected: pathmatchpb.PathTemplate{
 				Segments: []*pathmatchpb.Segment{
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "with"}}},
 					{Segment: &pathmatchpb.Segment_Literal{Literal: &pathmatchpb.Literal{Value: "variable"}}},
