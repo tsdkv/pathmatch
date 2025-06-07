@@ -3,6 +3,7 @@ package pathmatch
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/tsdkv/pathmatch/pathmatchpb"
 )
@@ -55,7 +56,7 @@ func (t Token) String() string {
 }
 
 type lexer struct {
-	input          []rune
+	input          string
 	curr           Token
 	prev           Token
 	pos            int
@@ -63,7 +64,7 @@ type lexer struct {
 }
 
 func NewLexer(s string) *lexer {
-	lex := &lexer{input: []rune(s), pos: 0, meetDoubleStar: false}
+	lex := &lexer{input: s, pos: 0, meetDoubleStar: false}
 	if len(lex.input) == 0 {
 		lex.curr = Token{Type: TokenEOF}
 	} else {
@@ -143,15 +144,15 @@ func (l *lexer) nextToken() Token {
 		return Token{Type: TokenEq}
 	default:
 		start := l.pos
-		for l.pos < len(l.input) &&
-			(l.input[l.pos] != '/' &&
-				l.input[l.pos] != '*' &&
-				l.input[l.pos] != '{' &&
-				l.input[l.pos] != '}' &&
-				l.input[l.pos] != '=') {
-			l.advance()
+		end := strings.IndexAny(l.input[l.pos:], "/*{}=")
+		if end == -1 {
+			end = len(l.input)
+		} else {
+			end += l.pos
 		}
-		return Token{Type: TokenLiteral, Value: string(l.input[start:l.pos])}
+		value := l.input[start:end]
+		l.pos = end
+		return Token{Type: TokenLiteral, Value: value}
 	}
 }
 
