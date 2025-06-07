@@ -175,3 +175,23 @@ func TestParseError(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkParse(b *testing.B) {
+	input := "/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z"
+	for b.Loop() {
+		_, err := pathmatch.ParseTemplate(input)
+		if err != nil {
+			b.Fatalf("Parse failed: %v", err)
+		}
+	}
+}
+
+func BenchmarkParseWithWildcards(b *testing.B) {
+	input := "/with/wildcard/*/and/double/wildcard/and/variable/{name=**}"
+	for b.Loop() {
+		_, err := pathmatch.ParseTemplate(input)
+		if err != nil {
+			b.Fatalf("Parse failed: %v", err)
+		}
+	}
+}
