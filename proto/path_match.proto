@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package com.github.tskdv.pathpatterns.proto.pattern;
+
+option go_package = "./pathmatchpb;pathmatchpb";
+
+// Represents AST to store as protobuf
+// Template = "/" Segments | "/" ;
+// Segments = Segment { "/" Segment } ;
+// Segment  = "*" | "**" | LITERAL | Variable ;
+// Variable = "{" FieldPath [ "=" Segments ] "}" ;
+// FieldPath = IDENT { "." IDENT } ;
+message PathMatch {
+  repeated Segment segments = 1;
+}
+
+message Segment {
+  oneof segment {
+    Literal literal = 1;
+    Variable variable = 2;
+    Star star = 3;
+    DoubleStar doubleStar = 4;
+  }
+}
+
+message Literal {
+  string value = 1;
+}
+
+message Variable {
+  string name = 1; // e.g. "id"
+  repeated Segment segments = 2; // e.g. "foo/*" or "**"
+}
+
+message Star {
+  // Matches a single URL path segment.
+  // e.g. "*"
+}
+
+message DoubleStar {
+  // Matches zero or more URL path segments.
+  // e.g. "**"
+}
