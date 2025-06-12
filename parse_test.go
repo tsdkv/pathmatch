@@ -186,6 +186,10 @@ func TestParseError(t *testing.T) {
 			input: "/with/double/wildcard/**/**/",
 			err:   pathmatch.ErrUnexpectedDoubleStar,
 		},
+		{
+			input: "/with/sub/variable/{var=/sub/{variable=value}}",
+			err:   pathmatch.ErrSubVariable,
+		},
 	}
 
 	for i := range tests {

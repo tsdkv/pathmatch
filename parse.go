@@ -159,6 +159,8 @@ func (l *lexer) nextToken() Token {
 var (
 	ErrUnexpectedEndOfInput = errors.New("unexpected end of input")
 	ErrUnexpectedDoubleStar = errors.New("unexpected '**' token in the middle of the path")
+	ErrUnexpectedToken      = errors.New("unexpected token")
+	ErrSubVariable          = errors.New("sub variables are not allowed in thix context")
 )
 
 // ParseTemplate parses a path template string and returns a PathMatch object
@@ -188,7 +190,7 @@ func parseSegments(lex *lexer) (*pathmatchpb.PathTemplate, error) {
 			continue
 		}
 
-		segment, err := parseSegment(lex)
+		segment, err := parseSegment(lex, true)
 		if err != nil {
 			return nil, err
 		}
@@ -198,7 +200,11 @@ func parseSegments(lex *lexer) (*pathmatchpb.PathTemplate, error) {
 	return &pathmatchpb.PathTemplate{Segments: segments}, nil
 }
 
-func parseSegment(lex *lexer) (*pathmatchpb.Segment, error) {
+// parseSegment parses a single segment of the path template.
+// It can be a literal, a wildcard ('*'), a double wildcard ('**'), or a variable.
+// If expectVar is true, it expects a variable segment and will parse it accordingly.
+// If expectVar is false, it will not parse a variable and will return an error if it encounters one.
+func parseSegment(lex *lexer, expectVar bool) (*pathmatchpb.Segment, error) {
 	if !lex.MeetDoubleStar() && lex.Match(TokenDoubleStar) {
 		return &pathmatchpb.Segment{Segment: &pathmatchpb.Segment_DoubleStar{DoubleStar: &pathmatchpb.DoubleStar{}}}, nil
 	}
@@ -219,7 +225,15 @@ func parseSegment(lex *lexer) (*pathmatchpb.Segment, error) {
 		}, nil
 	}
 
-	return parseVariable(lex)
+	if expectVar {
+		return parseVariable(lex)
+	}
+	// sub variables are not allowed
+	seg, err := parseVariable(lex)
+	if err == nil {
+		return nil, fmt.Errorf("%w: got %q", ErrSubVariable, seg.Segment.(*pathmatchpb.Segment_Variable).Variable.Name)
+	}
+	return nil, err
 }
 
 func parseVariable(lex *lexer) (*pathmatchpb.Segment, error) {
@@ -259,7 +273,7 @@ func parseVariable(lex *lexer) (*pathmatchpb.Segment, error) {
 			continue
 		}
 
-		segment, err := parseSegment(lex)
+		segment, err := parseSegment(lex, false)
 		if err != nil {
 			return nil, err
 		}
