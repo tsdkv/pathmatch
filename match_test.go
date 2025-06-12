@@ -111,3 +111,17 @@ func TestMatch(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkMatch(b *testing.B) {
+	template, err := pathmatch.ParseTemplate("/path/{var=**}")
+	if err != nil {
+		b.Fatalf("failed to parse template: %v", err)
+	}
+
+	for b.Loop() {
+		_, _, err := pathmatch.Match(template, "/path/to/with/more/segments")
+		if err != nil {
+			b.Fatalf("failed to match path: %v", err)
+		}
+	}
+}
