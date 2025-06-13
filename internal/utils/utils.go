@@ -20,7 +20,7 @@ func Split(path string) []string {
 
 func Join(segments ...string) string {
 	if len(segments) == 0 {
-		return "/" // Or "" depending on desired behavior for empty join
+		return "/"
 	}
 	// Filter out empty segments to avoid multiple slashes like "/a//b"
 	// if an empty string was passed in `segments`.
@@ -31,7 +31,8 @@ func Join(segments ...string) string {
 			validSegments = append(validSegments, trimmed)
 		}
 	}
-	if len(validSegments) == 0 { // If all segments were empty or slashes
+	// If all segments were empty or slashes
+	if len(validSegments) == 0 {
 		return "/"
 	}
 	return "/" + strings.Join(validSegments, "/")
