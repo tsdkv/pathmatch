@@ -227,6 +227,15 @@ Templates must start with a `/`.
     - Example: `/archive/{year}/{file=**}` applied to `/archive/2023/reports/annual/summary.pdf` would capture `year="2023"` and `file="reports/annual/summary.pdf"`.
     - **Constraint**: If `**` is used in a sub-template, it must be the only segment in that sub-template (e.g., `{var=**}` is valid, but `{var=prefix/**}` is not currently supported as a sub-template).
 
+## TODO
+
+- [ ] **Optional segments** (e.g., `/foo/bar?/baz`, `/foo/{var?}/baz`).
+- [ ] Add custom types for variables, for example:
+  - `/users/{id:int}/profile/{section:string}`
+  - `/users/{id:uuid}/profile`
+- [ ] Support regex patterns for variable matching, e.g., `{id:[0-9]+}`.
+- [ ] Implement more complex sub-template matching, such as allowing `**` in the middle of a sub-template (e.g., `{var=prefix/**/suffix}`).
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
