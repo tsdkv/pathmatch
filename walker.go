@@ -1,14 +1,15 @@
 package pathmatch
 
 import (
-	"path"
+	"maps"
 
+	"github.com/tsdkv/pathmatch/internal/match"
 	"github.com/tsdkv/pathmatch/pathmatchpb"
 )
 
 // Walker facilitates step-by-step traversal and matching of a concrete path
 // against a series of path templates. It is designed for scenarios such as
-// evaluating hierarchical configurations or security rules, where a specific path
+// evaluating hierarchical configurations, where a specific path
 // (e.g., "/users/alice/settings/profile") is incrementally matched against
 // templates (e.g., "/users/{userID}", then "/settings/{section}").
 //
@@ -28,7 +29,7 @@ type Walker struct {
 	currDepth int
 
 	// Current segment index in the path
-	segmentIdx int
+	pathSegIdx int
 
 	// Stack of segment indices for backtracking
 	segIdsCheckpoints []int
@@ -49,9 +50,8 @@ func NewWalker(path string) *Walker {
 	return &Walker{
 		pathSegments:      segments,
 		currDepth:         0,
-		segmentIdx:        0,
+		pathSegIdx:        0,
 		segIdsCheckpoints: []int{0},
-		vars:              []map[string]string{{}},
 	}
 }
 
@@ -79,7 +79,29 @@ func NewWalker(path string) *Walker {
 //	// walker.Remaining(): "/settings/profile"
 //	// walker.Variables(): map[string]string{"id": "alice"}
 //	// walker.Depth(): 1
-func (w *Walker) Step(template *pathmatchpb.PathTemplate) (stepVars map[string]string, matched bool) {
+func (w *Walker) Step(template *pathmatchpb.PathTemplate) (stepVars map[string]string, matched bool, err error) {
+	matched, pathIdx, vars, err := match.Match(template, w.pathSegments[w.pathSegIdx:])
+	if err != nil {
+		return nil, false, err
+	}
+	if !matched {
+		return nil, false, nil
+	}
+	// Update the walker's state
+	w.pathSegIdx += pathIdx
+	w.currDepth++
+
+	// Capture the variables from this step
+	stepVars = make(map[string]string, len(vars))
+	maps.Copy(stepVars, vars)
+
+	// Merge stepVars into the walker's accumulated variables
+	w.vars = append(w.vars, vars)
+	if len(w.segIdsCheckpoints) <= w.currDepth {
+		w.segIdsCheckpoints = append(w.segIdsCheckpoints, w.pathSegIdx)
+	} else {
+		w.segIdsCheckpoints[w.currDepth] = w.pathSegIdx
+	}
 	return
 }
 
@@ -101,7 +123,21 @@ func (w *Walker) Step(template *pathmatchpb.PathTemplate) (stepVars map[string]s
 //	ok = walker.StepBack() // ok: true, depth becomes 0
 //	ok = walker.StepBack() // ok: false, depth remains 0
 func (w *Walker) StepBack() bool {
-	return false
+	if w.currDepth == 0 {
+		return false
+	}
+
+	// Restore the last checkpoint
+	w.currDepth--
+	w.pathSegIdx = w.segIdsCheckpoints[w.currDepth]
+	if w.currDepth < len(w.vars) {
+		// Restore the variables from the last depth
+		w.vars = w.vars[:w.currDepth]
+	} else {
+		// If we are at the root, clear all variables
+		w.vars = nil
+	}
+	return true
 }
 
 // Reset returns the Walker to its initial state, as if it were newly created
@@ -109,6 +145,10 @@ func (w *Walker) StepBack() bool {
 // the remaining path is reset to the full concrete path, and depth is set to 0.
 // The history for StepBack is also cleared.
 func (w *Walker) Reset() {
+	w.pathSegIdx = 0
+	w.currDepth = 0
+	w.segIdsCheckpoints = []int{0}
+	w.vars = nil
 	return
 }
 
@@ -116,7 +156,7 @@ func (w *Walker) Reset() {
 // operations. It is a convenience method equivalent to checking if
 // Remaining() returns an empty string.
 func (w *Walker) IsComplete() bool {
-	return w.segmentIdx == len(w.pathSegments)
+	return w.pathSegIdx == len(w.pathSegments)
 }
 
 // Depth returns the number of successful Step operations performed,
@@ -135,10 +175,10 @@ func (w *Walker) Depth() int {
 //	walker.Step(templateForA) // Assuming templateForA matches "/a"
 //	fmt.Println(walker.Remaining()) // Output: "/b/c"
 func (w *Walker) Remaining() string {
-	if w.segmentIdx >= len(w.pathSegments) {
+	if w.pathSegIdx >= len(w.pathSegments) {
 		return ""
 	}
-	return path.Join(w.pathSegments[w.segmentIdx:]...)
+	return Join(w.pathSegments[w.pathSegIdx:]...)
 }
 
 // Variables returns a map of all variables accumulated from all successful
@@ -149,11 +189,7 @@ func (w *Walker) Remaining() string {
 func (w *Walker) Variables() map[string]string {
 	vars := make(map[string]string)
 	for _, v := range w.vars {
-		for k, val := range v {
-			if existing, ok := vars[k]; !ok || existing == "" {
-				vars[k] = val
-			}
-		}
+		maps.Copy(vars, v)
 	}
 	return vars
 }
