@@ -83,19 +83,19 @@ func TestMatch(t *testing.T) {
 			templateStr:   "/path/{var=**}",
 			path:          "/path/to/with/more",
 			expectedMatch: true,
-			expectedVars:  map[string]string{"var": "to/with/more"},
+			expectedVars:  map[string]string{"var": "/to/with/more"},
 		},
 		{
 			templateStr:   "/path/{var1}/{var2=/hello/*}/world",
 			path:          "/path/value1/hello/value2/world",
 			expectedMatch: true,
-			expectedVars:  map[string]string{"var1": "value1", "var2": "hello/value2"},
+			expectedVars:  map[string]string{"var1": "value1", "var2": "/hello/value2"},
 		},
 		{
 			templateStr:   "/path/with/var/{var1=sub/path/**}",
 			path:          "/path/with/var/sub/path/to/resource",
 			expectedMatch: true,
-			expectedVars:  map[string]string{"var1": "sub/path/to/resource"},
+			expectedVars:  map[string]string{"var1": "/sub/path/to/resource"},
 		},
 	}
 

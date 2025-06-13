@@ -2,8 +2,8 @@ package match
 
 import (
 	"errors"
-	"strings"
 
+	"github.com/tsdkv/pathmatch/internal/utils"
 	"github.com/tsdkv/pathmatch/pathmatchpb"
 )
 
@@ -71,7 +71,7 @@ func Match(template *pathmatchpb.PathTemplate, pathSegments []string) (bool, int
 						}
 						// Collect all remaining segments
 						varValue = append(varValue, pathSegments[pathIdx:]...)
-						vars[s.Variable.Name] = strings.Join(varValue, "/")
+						vars[s.Variable.Name] = utils.Join(varValue...)
 						pathIdx = len(pathSegments) // Move to the end of path segments
 						return true, pathIdx, vars, nil
 					case *pathmatchpb.Segment_Star:
@@ -89,7 +89,7 @@ func Match(template *pathmatchpb.PathTemplate, pathSegments []string) (bool, int
 					}
 
 				}
-				vars[s.Variable.Name] = strings.Join(varValue, "/")
+				vars[s.Variable.Name] = utils.Join(varValue...)
 				templateIdx++
 			}
 		}
