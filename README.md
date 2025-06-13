@@ -230,14 +230,19 @@ Templates must start with a `/`.
 ## TODO
 
 - [ ] **Optional segments** (e.g., `/foo/bar?/baz`, `/foo/{var?}/baz`).
+- [ ] Options like case sensitivity, strict matching, etc.
 - [ ] Add custom types for variables, for example:
   - `/users/{id:int}/profile/{section:string}`
   - `/users/{id:uuid}/profile`
 - [ ] Support regex patterns for variable matching, e.g., `{id:[0-9]+}`.
 - [ ] Implement more complex sub-template matching, such as allowing `**` in the middle of a sub-template (e.g., `{var=prefix/**/suffix}`).
+- [ ] Fuzz testing to ensure robustness against malformed paths and templates.
+- [ ] Secutiry features, such as escaping or sanitizing paths to prevent injection attacks.
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
