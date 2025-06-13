@@ -34,7 +34,7 @@ Path templates are strings that define a pattern to match against concrete paths
 - **Literals**: Exact string segments (e.g., `users`, `config`).
 - **Variables**: Placeholders for dynamic segments, enclosed in curly braces (e.g., `{userID}`, `{document_id}`).
 - **Single-Segment Wildcard (`*`)**: Matches exactly one path segment.
-- **Multi-Segment Wildcard (`**`)\*\*: Matches zero or more path segments. It can only appear as the last segment in a template or as the last segment of a variable's sub-template.
+- **Multi-Segment Wildcard** (`**`): Matches zero or more path segments. It can only appear as the last segment in a template or as the last segment of a variable's sub-template.
 - **Variables with Sub-Templates**: A variable can specify a pattern for the segment(s) it should match (e.g., `{image=*.png}` or `{rest=**}`).
 
 **Example Templates:**
@@ -234,7 +234,7 @@ Templates must start with a `/`.
     - Example: `/files/*/details` matches `/files/image.png/details` and `/files/document.pdf/details`.
     - The value matched by `*` is not captured as a named variable.
 
-4.  **Multi-Segment Wildcard (`**`)\*\*:
+4.  **Multi-Segment Wildcard** (`**`):
 
     - Matches zero or more path segments.
     - **Constraint**: Can only appear as the _last segment_ of a path template or as the _last segment within a variable's sub-template_.
