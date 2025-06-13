@@ -79,7 +79,8 @@ func main() {
 
 	if matched {
 		fmt.Println("Path matched!")
-		fmt.Println("Variables:", vars) // Output: Variables: map[postID:123 userID:alice]
+		fmt.Println("Variables:", vars)
+		// Output: Variables: map[postID:123 userID:alice]
 	} else {
 		fmt.Println("Path did not match.")
 	}
@@ -89,7 +90,8 @@ func main() {
 	path2 := "/files/images/photo.jpg"
 	matched, vars, err = pathmatch.CompileAndMatch(templatePattern2, path2)
 	if matched {
-		fmt.Printf("Path 2 matched! Vars: %v\n", vars) // Output: Path 2 matched! Vars: map[category:images] (* is not captured as a named var)
+		fmt.Printf("Path 2 matched! Vars: %v\n", vars)
+		// Output: Path 2 matched! Vars: map[category:images] (* is not captured as a named var)
 	}
 }
 ```
@@ -122,7 +124,8 @@ func main() {
 	}
 	if matched {
 		fmt.Println("Path 1 matched!")
-		fmt.Println("Variables:", vars) // Output: Variables: map[category:electronics itemID:tv/samsung/qled80]
+		fmt.Println("Variables:", vars)
+		// Output: Variables: map[category:electronics itemID:tv/samsung/qled80]
 	}
 
 	path2 := "/items/books" // Will not match fully
@@ -144,8 +147,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/tsdkv/pathmatch" // Replace with your actual module path
-)
+	"github.com/tsdkv/pathmatch")
 
 func main() {
 	concretePath := "/databases/mydb/documents/users/alice"
