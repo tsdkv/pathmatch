@@ -188,31 +188,6 @@ func main() {
 }
 ```
 
-## API Highlights
-
-### Main Functions
-
-- `ParseTemplate(templatePattern string) (*pathmatchpb.PathTemplate, error)`: Parses a template string into a `PathTemplate` object.
-- `Match(template *pathmatchpb.PathTemplate, path string) (matched bool, vars map[string]string, err error)`: Matches a concrete path against a pre-parsed `PathTemplate`.
-- `CompileAndMatch(templatePattern string, path string) (matched bool, vars map[string]string, err error)`: A convenience function that parses and then matches.
-
-### `Walker` Type
-
-- `NewWalker(concretePath string) *Walker`: Creates a new walker for the given path.
-- `(w *Walker) Step(template *PathTemplate) (stepVars map[string]string, matched bool)`: Attempts to match the next part of the path.
-- `(w *Walker) StepBack() bool`: Reverts the last successful step.
-- `(w *Walker) Reset()`: Resets the walker to its initial state.
-- `(w *Walker) Remaining() string`: Returns the unconsumed portion of the path.
-- `(w *Walker) Variables() map[string]string`: Returns all variables captured so far.
-- `(w *Walker) Depth() int`: Returns the current matching depth.
-- `(w *Walker) IsComplete() bool`: Checks if the entire path has been consumed.
-
-### Utility Functions
-
-- `Split(path string) []string`: Splits a path into segments.
-- `Join(segments ...string) string`: Joins segments into a path.
-- `Clean(path string) string`: Normalizes a path string (removes redundant slashes, etc.).
-
 ## Path Template Syntax
 
 Templates must start with a `/`.
