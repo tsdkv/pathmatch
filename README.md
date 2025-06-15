@@ -20,15 +20,9 @@ It also provides a `Walker` type for step-by-step path consumption against a seq
 go get github.com/tsdkv/pathmatch
 ```
 
-### Matching
+## Usage
 
 The core operation involves matching a concrete path (e.g., `/users/123/profile`) against a parsed `PathTemplate`. A successful match confirms that the path conforms to the template's structure and allows for the extraction of any defined variables.
-
-### Walker
-
-The `Walker` type allows for a more controlled, step-by-step traversal of a concrete path. You initialize a `Walker` with a concrete path and then use its `Step` method with different `PathTemplate`s to consume the path segment by segment. This is useful for navigating hierarchical structures or applying a sequence of rules.
-
-## Usage
 
 ### Basic Matching
 
@@ -51,6 +45,8 @@ matched, vars, err := pathmatch.Match(tmpl, "/items/electronics/tv/samsung/qled8
 ```
 
 ### Step-by-Step Traversal with `Walker`
+
+The `Walker` type allows for a more controlled, step-by-step traversal of a concrete path. You initialize a `Walker` with a concrete path and then use its `Step` method with different `PathTemplate`s to consume the path segment by segment. This is useful for navigating hierarchical structures or applying a sequence of rules.
 
 ```go
 walker := pathmatch.NewWalker("/users/alice/settings/profile/view")
