@@ -30,10 +30,10 @@ func Clean(path string) string {
 
 // CompileAndMatch parses the templatePattern string and then matches it against the given path.
 // It's a convenience wrapper around ParseTemplate and Match.
-func CompileAndMatch(templatePattern string, path string) (matched bool, vars map[string]string, err error) {
+func CompileAndMatch(templatePattern string, path string, opts ...MatchOption) (matched bool, vars map[string]string, err error) {
 	tmpl, err := ParseTemplate(templatePattern)
 	if err != nil {
 		return false, nil, err
 	}
-	return Match(tmpl, path)
+	return Match(tmpl, path, opts...)
 }

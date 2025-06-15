@@ -25,6 +25,7 @@ func TestMatch(t *testing.T) {
 		path          string
 		expectedMatch bool
 		expectedVars  map[string]string
+		matchOpts     []pathmatch.MatchOption
 	}{
 		{
 			templateStr:   "/a",
@@ -97,6 +98,18 @@ func TestMatch(t *testing.T) {
 			expectedMatch: true,
 			expectedVars:  map[string]string{"var1": "/sub/path/to/resource"},
 		},
+		{
+			templateStr:   "/case/InSeNSitIvE/{var}",
+			path:          "/cAse/iNsEnSiTiVe/Matched",
+			expectedMatch: true,
+			expectedVars:  map[string]string{"var": "Matched"},
+			matchOpts:     []pathmatch.MatchOption{pathmatch.WithCaseInsensitive()},
+		},
+		{
+			templateStr:   "/default/case/InSeNSitIvE/unmatched",
+			path:          "/default/cAse/iNsEnSiTiVe/Unmatched",
+			expectedMatch: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -104,7 +117,7 @@ func TestMatch(t *testing.T) {
 			template, err := pathmatch.ParseTemplate(tt.templateStr)
 			require.NoError(t, err, "failed to parse template: %v", err)
 
-			match, vars, err := pathmatch.Match(template, tt.path)
+			match, vars, err := pathmatch.Match(template, tt.path, tt.matchOpts...)
 			require.NoError(t, err, "failed to match path: %v", err)
 			require.Equal(t, tt.expectedMatch, match, "expected match to be %v", tt.expectedMatch)
 			require.True(t, equalVars(vars, tt.expectedVars), "expected vars to be %v, got %v", tt.expectedVars, vars)

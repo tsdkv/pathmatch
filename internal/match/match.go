@@ -7,7 +7,11 @@ import (
 	"github.com/tsdkv/pathmatch/pathmatchpb"
 )
 
-func Match(template *pathmatchpb.PathTemplate, pathSegments []string) (bool, int, map[string]string, error) {
+type MatchOptions struct {
+	CaseInsensitive bool
+}
+
+func Match(template *pathmatchpb.PathTemplate, pathSegments []string, opts *MatchOptions) (bool, int, map[string]string, error) {
 	if template == nil {
 		return false, 0, nil, errors.New("template cannot be nil")
 	}
@@ -27,7 +31,7 @@ func Match(template *pathmatchpb.PathTemplate, pathSegments []string) (bool, int
 
 		switch s := segment.Segment.(type) {
 		case *pathmatchpb.Segment_Literal:
-			if s.Literal.Value != pathSegment {
+			if !compareStrings(s.Literal.Value, pathSegment, opts.CaseInsensitive) {
 				return false, 0, nil, nil
 			}
 			templateIdx++
@@ -59,7 +63,7 @@ func Match(template *pathmatchpb.PathTemplate, pathSegments []string) (bool, int
 				for i := range s.Variable.Segments {
 					switch seg := s.Variable.Segments[i].Segment.(type) {
 					case *pathmatchpb.Segment_Literal:
-						if pathIdx >= len(pathSegments) || seg.Literal.Value != pathSegments[pathIdx] {
+						if pathIdx >= len(pathSegments) || !compareStrings(seg.Literal.Value, pathSegments[pathIdx], opts.CaseInsensitive) {
 							return false, 0, nil, nil
 						}
 						varValue = append(varValue, seg.Literal.Value)

@@ -7,6 +7,49 @@ import (
 	"github.com/tsdkv/pathmatch/pathmatchpb"
 )
 
+// WalkerBuilder is a helper struct for constructing a Walker instance.
+// It allows setting options before building the Walker.
+//
+// Example:
+//
+//	walkerBuilder := pathmatch.NewWalkerBuilder("/users/alice/settings/profile")
+//	walker := walkerBuilder.WithCaseIncensitive().Build()
+type WalkerBuilder struct {
+	concretePath string
+	matchOptions *match.MatchOptions
+}
+
+// NewWalkerBuilder initializes a new WalkerBuilder with the given concrete path.
+// The builder allows customization of match options before creating the Walker.
+func NewWalkerBuilder(concretePath string) *WalkerBuilder {
+	return &WalkerBuilder{
+		concretePath: concretePath,
+	}
+}
+
+// WithCaseIncensitive sets the match options to be case-insensitive.
+// This modifies the Walker's behavior to ignore case when matching path segments.
+func (b *WalkerBuilder) WithCaseIncensitive() *WalkerBuilder {
+	if b.matchOptions == nil {
+		b.matchOptions = &match.MatchOptions{}
+	}
+	b.matchOptions.CaseInsensitive = true
+	return b
+}
+
+// Build creates a new Walker instance using the concrete path and match options
+// specified in the builder. It initializes the Walker to start at the beginning
+// of the concrete path with no variables captured and a depth of 0.
+func (b *WalkerBuilder) Build() (*Walker, error) {
+	segments := Split(b.concretePath)
+	return &Walker{
+		pathSegments:      segments,
+		currDepth:         0,
+		segIdsCheckpoints: []int{0},
+		matchOptions:      b.matchOptions,
+	}, nil
+}
+
 // Walker facilitates step-by-step traversal and matching of a concrete path
 // against a series of path templates. It is designed for scenarios such as
 // evaluating hierarchical configurations, where a specific path
@@ -36,6 +79,9 @@ type Walker struct {
 
 	// Stack of variable maps for each level
 	vars []map[string]string
+
+	// Match options for controlling matching behavior
+	matchOptions *match.MatchOptions
 }
 
 // NewWalker creates and initializes a new Walker for the given concretePath.
@@ -52,6 +98,9 @@ func NewWalker(path string) *Walker {
 		currDepth:         0,
 		pathSegIdx:        0,
 		segIdsCheckpoints: []int{0},
+		matchOptions: &match.MatchOptions{
+			CaseInsensitive: false, // Default to case-sensitive matching
+		},
 	}
 }
 
@@ -80,7 +129,7 @@ func NewWalker(path string) *Walker {
 //	// walker.Variables(): map[string]string{"id": "alice"}
 //	// walker.Depth(): 1
 func (w *Walker) Step(template *pathmatchpb.PathTemplate) (stepVars map[string]string, matched bool, err error) {
-	matched, pathIdx, vars, err := match.Match(template, w.pathSegments[w.pathSegIdx:])
+	matched, pathIdx, vars, err := match.Match(template, w.pathSegments[w.pathSegIdx:], w.matchOptions)
 	if err != nil {
 		return nil, false, err
 	}

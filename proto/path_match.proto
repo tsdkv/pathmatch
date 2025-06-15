@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.github.tskdv.pathpatterns.proto.pattern;
+package com.github.tskdv.pathmatch.proto.pathmatchpb;
 
 option go_package = "./pathmatchpb;pathmatchpb";
 
