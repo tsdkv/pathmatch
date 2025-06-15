@@ -20,11 +20,21 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Represents AST to store as protobuf
-// Template = "/" Segments | "/" ;
+// PathTemplate defines the abstract syntax tree (AST) for a parsed path pattern.
+// This structure is used to store and interpret path matching rules.
+//
+// The grammar for path templates can be summarized as:
+// Template = "/" [ Segments ] ;
 // Segments = Segment { "/" Segment } ;
 // Segment  = "*" | "**" | LITERAL | Variable ;
-// Variable = "{" FieldPath [ "=" Segments ] "}" ;
+// Variable = "{" LITERAL [ "=" Segments ] "}" ;  // LITERAL here is the variable name
+//
+// Examples:
+// - /users/{id}/profile
+// - /files/**
+// - /archive/{year}/{month=**}
+// - /v1/books/{book_id}
+// - /
 type PathTemplate struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -72,6 +82,7 @@ func (x *PathTemplate) GetSegments() []*Segment {
 	return nil
 }
 
+// Segment represents a single component of a path template.
 type Segment struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -181,11 +192,14 @@ func (*Segment_Star) isSegment_Segment() {}
 
 func (*Segment_DoubleStar) isSegment_Segment() {}
 
+// Literal represents a fixed string segment in a path.
 type Literal struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
+	// The string value of the literal segment.
+	// e.g., "users", "profile".
 	Value string `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
@@ -228,12 +242,25 @@ func (x *Literal) GetValue() string {
 	return ""
 }
 
+// Variable represents a named placeholder in a path template.
+// It can match a single segment (e.g., "{id}") or multiple segments
+// if a sub-pattern is defined (e.g., "{filePath=/docs/**}").
+//
+// Limitations:
+//   - Nested variables (e.g., "{outer={inner}}") are not allowed.
+//   - The sub-pattern defined after '=' (e.g., in "{name=pattern}") cannot itself
+//     contain variables. It can only contain literals, single wildcards ('*'),
+//     or a double wildcard ('**') at the very end of the pattern.
 type Variable struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Name     string     `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`         // e.g. "id"
+	// The name of the variable, e.g., "id" in "{id}".
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Optional. If present, defines a sub-pattern that the variable must match.
+	// e.g., for "{filePath=/docs/**}", segments would represent "/docs/**".
+	// If the variable is simple (e.g., "{id}"), this list will be empty.
 	Segments []*Segment `protobuf:"bytes,2,rep,name=segments,proto3" json:"segments,omitempty"` // e.g. "foo/*" or "**"
 }
 
@@ -283,6 +310,8 @@ func (x *Variable) GetSegments() []*Segment {
 	return nil
 }
 
+// Star represents a single-segment wildcard character ('*').
+// It matches exactly one segment in the path.
 type Star struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -321,6 +350,9 @@ func (*Star) Descriptor() ([]byte, []int) {
 	return file_path_match_proto_rawDescGZIP(), []int{4}
 }
 
+// DoubleStar represents a multi-segment wildcard character ('**').
+// It matches zero or more path segments.
+// It must be the last segment in the main path template or in a variable's sub-pattern.
 type DoubleStar struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
