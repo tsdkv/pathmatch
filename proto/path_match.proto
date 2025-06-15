@@ -4,15 +4,26 @@ package com.github.tskdv.pathpatterns.proto.pattern;
 
 option go_package = "./pathmatchpb;pathmatchpb";
 
-// Represents AST to store as protobuf
-// Template = "/" Segments | "/" ;
+// PathTemplate defines the abstract syntax tree (AST) for a parsed path pattern.
+// This structure is used to store and interpret path matching rules.
+//
+// The grammar for path templates can be summarized as:
+// Template = "/" [ Segments ] ;
 // Segments = Segment { "/" Segment } ;
 // Segment  = "*" | "**" | LITERAL | Variable ;
-// Variable = "{" FieldPath [ "=" Segments ] "}" ;
+// Variable = "{" LITERAL [ "=" Segments ] "}" ;  // LITERAL here is the variable name
+//
+// Examples:
+// - /users/{id}/profile
+// - /files/**
+// - /archive/{year}/{month=**}
+// - /v1/books/{book_id}
+// - /
 message PathTemplate {
   repeated Segment segments = 1;
 }
 
+// Segment represents a single component of a path template.
 message Segment {
   oneof segment {
     Literal literal = 1;
@@ -22,21 +33,42 @@ message Segment {
   }
 }
 
+// Literal represents a fixed string segment in a path.
 message Literal {
+  // The string value of the literal segment.
+  // e.g., "users", "profile".
   string value = 1;
 }
 
+// Variable represents a named placeholder in a path template.
+// It can match a single segment (e.g., "{id}") or multiple segments
+// if a sub-pattern is defined (e.g., "{filePath=/docs/**}").
+//
+// Limitations:
+// - Nested variables (e.g., "{outer={inner}}") are not allowed.
+// - The sub-pattern defined after '=' (e.g., in "{name=pattern}") cannot itself
+//   contain variables. It can only contain literals, single wildcards ('*'),
+//   or a double wildcard ('**') at the very end of the pattern.
 message Variable {
-  string name = 1; // e.g. "id"
+  // The name of the variable, e.g., "id" in "{id}".
+  string name = 1;
+
+  // Optional. If present, defines a sub-pattern that the variable must match.
+  // e.g., for "{filePath=/docs/**}", segments would represent "/docs/**".
+  // If the variable is simple (e.g., "{id}"), this list will be empty.
   repeated Segment segments = 2; // e.g. "foo/*" or "**"
 }
 
+// Star represents a single-segment wildcard character ('*').
+// It matches exactly one segment in the path.
 message Star {
-  // Matches a single URL path segment.
-  // e.g. "*"
+  // Example: In "/users/*/profile", '*' is a Star segment.
 }
 
+// DoubleStar represents a multi-segment wildcard character ('**').
+// It matches zero or more path segments.
+// It must be the last segment in the main path template or in a variable's sub-pattern.
 message DoubleStar {
-  // Matches zero or more URL path segments.
-  // e.g. "**"
+  // Example: In "/files/**", '**' is a DoubleStar segment.
+  // In "/data/{rest=**}", the pattern for "rest" uses a DoubleStar.
 }
