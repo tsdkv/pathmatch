@@ -24,30 +24,31 @@ The core operation involves matching a concrete path (e.g., `/users/123/profile`
 
 The `Walker` type allows for a more controlled, step-by-step traversal of a concrete path. You initialize a `Walker` with a concrete path and then use its `Step` method with different `PathTemplate`s to consume the path segment by segment. This is useful for navigating hierarchical structures or applying a sequence of rules.
 
-```
 ## Usage
 
 ### Basic Matching
 
+```go
 templatePattern := "/users/{userID}/posts/{postID}"
 path := "/users/alice/posts/123"
 matched, vars, err := pathmatch.CompileAndMatch(templatePattern, path)
 // matched == true
 // vars == map[string]string{"userID": "alice", "postID": "123"}
-
 ```
 
 ### Advanced Matching with Parsed Templates
 
-````go
+```go
 templatePattern := "/items/{category}/{itemID=**}"
 tmpl, _ := pathmatch.ParseTemplate(templatePattern)
 matched, vars, err := pathmatch.Match(tmpl, "/items/electronics/tv/samsung/qled80")
 // matched == true
 // vars == map[string]string{"category": "electronics", "itemID": "tv/samsung/qled80"}
+```
 
 ### Step-by-Step Traversal with Walker
 
+```go
 walker := pathmatch.NewWalker("/users/alice/settings/profile")
 
 userTemplate, _ := pathmatch.ParseTemplate("/users/{userID}")
@@ -59,6 +60,7 @@ stepVars, ok, _ = walker.Step(settingsTemplate)
 // stepVars == map[string]string{"section": "profile"}, ok == true
 
 walker.IsComplete() // true
+```
 
 ## Path Template Syntax
 
@@ -121,10 +123,3 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-```
-
-```
-
-```
-````
