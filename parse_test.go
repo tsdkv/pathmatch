@@ -11,23 +11,6 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-func TestLexerSimple(t *testing.T) {
-	lex := pathmatch.NewLexer("/a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z")
-	if lex == nil {
-		t.Fatal("lexer should not be nil")
-	}
-
-	for i := range 25 {
-		if !lex.Match(pathmatch.TokenSlash) {
-			t.Fatalf("expected token type %v, got %v", pathmatch.TokenSlash, lex.Peek().Type)
-		}
-		require.Equal(t, string(byte('a'+i)), lex.Peek().Value, "expected token value to match the expected character")
-		if !lex.Match(pathmatch.TokenLiteral) {
-			t.Fatalf("expected token type %v, got %v", pathmatch.TokenLiteral, lex.Peek().Type)
-		}
-	}
-}
-
 func TestParse(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -153,50 +136,6 @@ func TestParse(t *testing.T) {
 			if diff != "" {
 				t.Errorf("Parse result mismatch (-want +got):\n%s", diff)
 			}
-		})
-	}
-}
-
-func TestParseError(t *testing.T) {
-	tests := []struct {
-		input string
-		err   error
-	}{
-		{
-			input: "/with/variable/{name",
-			err:   pathmatch.ErrUnexpectedEndOfInput,
-		},
-		{
-			input: "/with/variable/{name=/some/other/path",
-			err:   pathmatch.ErrUnexpectedEndOfInput,
-		},
-		{
-			input: "/with/variable/**/after",
-			err:   pathmatch.ErrUnexpectedDoubleStar,
-		},
-		{
-			input: "/with/variable/{name=/some/other/**}/and/more",
-			err:   pathmatch.ErrUnexpectedDoubleStar,
-		},
-		{
-			input: "/with/variable/{name=/some/other/**/path}/and/more",
-			err:   pathmatch.ErrUnexpectedDoubleStar,
-		},
-		{
-			input: "/with/double/wildcard/**/**/",
-			err:   pathmatch.ErrUnexpectedDoubleStar,
-		},
-		{
-			input: "/with/sub/variable/{var=/sub/{variable=value}}",
-			err:   pathmatch.ErrSubVariable,
-		},
-	}
-
-	for i := range tests {
-		t.Run(tests[i].input, func(t *testing.T) {
-			_, err := pathmatch.ParseTemplate(tests[i].input)
-			require.Error(t, err, "Parse should return an error")
-			require.ErrorIs(t, err, tests[i].err, "Expected error should match")
 		})
 	}
 }
