@@ -1,6 +1,10 @@
 # pathmatch
 
-**PathMatch** is a Go library for matching and extracting variables from URL-like path templates. It supports features such as wildcards, named variables, and sub-templates for flexible path matching.
+PathMatch is a Go library for flexible matching of URL-like paths against defined templates. It allows for extracting named variables from paths and supports wildcards for more complex matching rules.
+
+The library is useful for routing, resource identification, or any scenario where structured path analysis is required. For instance, given a template `/users/{userID}/data` and an input path `/users/123/data`, PathMatch can confirm the match and extract `userID="123"`.
+
+It also provides a `Walker` type for step-by-step path consumption against a sequence of templates.
 
 ## Features
 
