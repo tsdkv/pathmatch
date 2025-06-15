@@ -43,7 +43,7 @@ templatePattern := "/items/{category}/{itemID=**}"
 tmpl, _ := pathmatch.ParseTemplate(templatePattern)
 matched, vars, err := pathmatch.Match(tmpl, "/items/electronics/tv/samsung/qled80")
 // matched == true
-// vars == map[string]string{"category": "electronics", "itemID": "tv/samsung/qled80"}
+// vars == map[string]string{"category": "electronics", "itemID": "/tv/samsung/qled80"}
 ```
 
 ### Step-by-Step Traversal with Walker
