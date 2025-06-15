@@ -50,20 +50,51 @@ matched, vars, err := pathmatch.Match(tmpl, "/items/electronics/tv/samsung/qled8
 // vars == map[string]string{"category": "electronics", "itemID": "/tv/samsung/qled80"}
 ```
 
-### Step-by-Step Traversal with Walker
+### Step-by-Step Traversal with `Walker`
 
 ```go
-walker := pathmatch.NewWalker("/users/alice/settings/profile")
+walker := pathmatch.NewWalker("/users/alice/settings/profile/view")
+
+// Initial state
+// walker.Depth() == 0
+// walker.Remaining() == "/users/alice/settings/profile/view"
+// walker.Variables() == map[string]string{}
 
 userTemplate, _ := pathmatch.ParseTemplate("/users/{userID}")
 stepVars, ok, _ := walker.Step(userTemplate)
 // stepVars == map[string]string{"userID": "alice"}, ok == true
+// walker.Depth() == 1
+// walker.Remaining() == "/settings/profile/view"
+// walker.Variables() == map[string]string{"userID": "alice"}
 
 settingsTemplate, _ := pathmatch.ParseTemplate("/settings/{section}")
 stepVars, ok, _ = walker.Step(settingsTemplate)
 // stepVars == map[string]string{"section": "profile"}, ok == true
+// walker.Depth() == 2
+// walker.Remaining() == "/view" (assuming /settings/{section} matched /settings/profile)
+// walker.Variables() == map[string]string{"userID": "alice", "section": "profile"}
+
+// Step back
+steppedBack := walker.StepBack() // true
+// walker.Depth() == 1
+// walker.Remaining() == "/settings/profile/view"
+// walker.Variables() == map[string]string{"userID": "alice"}
+
+// Try to match another template
+actionTemplate, _ := pathmatch.ParseTemplate("/settings/profile/{action}")
+stepVars, ok, _ = walker.Step(actionTemplate)
+// stepVars == map[string]string{"action": "view"}, ok == true
+// walker.Depth() == 2
+// walker.Remaining() == ""
+// walker.Variables() == map[string]string{"userID": "alice", "action": "view"}
 
 walker.IsComplete() // true
+
+// Reset the walker
+walker.Reset()
+// walker.Depth() == 0
+// walker.Remaining() == "/users/alice/settings/profile/view"
+// walker.Variables() == map[string]string{}
 ```
 
 ## Path Template Syntax
