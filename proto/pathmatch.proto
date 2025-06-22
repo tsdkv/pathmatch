@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package pathmatch;
 
-option go_package = "./pathmatchpb;pathmatchpb";
+option go_package = "github.com/tsdkv/pathmatch/pathmatchpb;pathmatchpb";
 
 // PathTemplate defines the abstract syntax tree (AST) for a parsed path pattern.
 // This structure is used to store and interpret path matching rules.

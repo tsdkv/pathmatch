@@ -9,6 +9,7 @@ clean:
 	go clean -testcache
 
 proto:
-	protoc --go_out=. --go-grpc_out=. --proto_path=./proto ./proto/*.proto 
+	mkdir -p pathmatchpb
+	protoc --proto_path=./proto --go_out=pathmatchpb --go_opt=paths=source_relative ./proto/pathmatch.proto
 
 all: test bench
