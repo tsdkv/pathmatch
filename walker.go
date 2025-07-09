@@ -4,7 +4,7 @@ import (
 	"maps"
 
 	"github.com/tsdkv/pathmatch/internal/match"
-	"github.com/tsdkv/pathmatch/pathmatchpb"
+	"github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
 // WalkerBuilder is a helper struct for constructing a Walker instance.

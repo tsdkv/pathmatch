@@ -2,7 +2,7 @@ package pathmatch
 
 import (
 	"github.com/tsdkv/pathmatch/internal/match"
-	"github.com/tsdkv/pathmatch/pathmatchpb"
+	"github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
 type MatchOption func(*match.MatchOptions)

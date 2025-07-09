@@ -1,0 +1,12 @@
+version: v1
+name: buf.build/tsdkv/pathmatch
+lint:
+  use:
+    - STANDARD
+  ignore_only:
+    PACKAGE_DIRECTORY_MATCH:
+      - proto
+
+breaking:
+  use:
+    - PACKAGE

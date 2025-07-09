@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	pm "github.com/tsdkv/pathmatch"
-	pmpb "github.com/tsdkv/pathmatch/pathmatchpb"
+	pmpb "github.com/tsdkv/pathmatch/pathmatchpb/v1"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

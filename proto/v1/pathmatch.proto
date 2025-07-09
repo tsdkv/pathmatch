@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package pathmatch;
+package pathmatch.v1;
 
-option go_package = "github.com/tsdkv/pathmatch/pathmatchpb;pathmatchpb";
+option go_package = "github.com/tsdkv/pathmatch/pathmatchpb/v1;pathmatchpb";
 
 // PathTemplate defines the abstract syntax tree (AST) for a parsed path pattern.
 // This structure is used to store and interpret path matching rules.
@@ -20,6 +20,7 @@ option go_package = "github.com/tsdkv/pathmatch/pathmatchpb;pathmatchpb";
 // - /v1/books/{book_id}
 // - /
 message PathTemplate {
+  // The path template is represented as a sequence of segments.
   repeated Segment segments = 1;
 }
 
@@ -29,7 +30,7 @@ message Segment {
     Literal literal = 1;
     Variable variable = 2;
     Star star = 3;
-    DoubleStar doubleStar = 4;
+    DoubleStar double_star = 4;
   }
 }
 

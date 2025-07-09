@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	pmpb "github.com/tsdkv/pathmatch/pathmatchpb"
+	pmpb "github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
 var (
