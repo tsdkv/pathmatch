@@ -332,3 +332,32 @@ func TestWalker_Remaining_EdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestWalkerBuilder_WithOptions(t *testing.T) {
+	t.Run("WithKeepFirstVariable", func(t *testing.T) {
+		// By default, last-in-wins
+		builder := pm.NewWalkerBuilder("/a/b")
+		walker, _ := builder.Build()
+		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="a"
+		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="b"
+		assert.Equal(t, map[string]string{"id": "b"}, walker.Variables())
+
+		// With the option, first-in-wins
+		builder = pm.NewWalkerBuilder("/a/b")
+		walker, _ = builder.WithKeepFirstVariable().Build()
+		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="a"
+		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="b"
+		assert.Equal(t, map[string]string{"id": "a"}, walker.Variables())
+	})
+
+	t.Run("WithCaseIncensitive", func(t *testing.T) {
+		builder := pm.NewWalkerBuilder("/USERS/ALICE")
+		walker, _ := builder.WithCaseIncensitive().Build()
+		template := mustParseTemplate(t, "/users/{name}")
+		vars, matched, err := walker.Step(template)
+
+		require.NoError(t, err)
+		assert.True(t, matched)
+		assert.Equal(t, map[string]string{"name": "ALICE"}, vars)
+	})
+}

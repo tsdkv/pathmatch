@@ -14,6 +14,15 @@ func WithCaseInsensitive() MatchOption {
 	}
 }
 
+// WithKeepFirstVariable sets the variable merging policy. If true, when a
+// variable name is encountered more than once, the value from the first
+// match is kept. If false (default), the last match overwrites previous values.
+func WithKeepFirstVariable() MatchOption {
+	return func(opts *match.MatchOptions) {
+		opts.KeepFirstVariable = true
+	}
+}
+
 // Matches path to a parsed template path
 // path cant contain wildcards or variables, only literal segments
 //
