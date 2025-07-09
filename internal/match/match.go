@@ -8,7 +8,8 @@ import (
 )
 
 type MatchOptions struct {
-	CaseInsensitive bool
+	CaseInsensitive   bool
+	KeepFirstVariable bool
 }
 
 func Match(template *pathmatchpb.PathTemplate, pathSegments []string, opts *MatchOptions) (bool, int, map[string]string, error) {
@@ -93,8 +94,16 @@ func Match(template *pathmatchpb.PathTemplate, pathSegments []string, opts *Matc
 					}
 
 				}
-				vars[s.Variable.Name] = utils.Join(varValue...)
 				templateIdx++
+
+				_, ok := vars[s.Variable.Name]
+				if !ok {
+					vars[s.Variable.Name] = utils.Join(varValue...)
+				} else if !opts.KeepFirstVariable {
+					// If the variable already exists and we're not keeping the first value,
+					// overwrite it with the new value.
+					vars[s.Variable.Name] = utils.Join(varValue...)
+				}
 			}
 		}
 	}

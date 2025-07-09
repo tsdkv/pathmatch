@@ -24,16 +24,22 @@ type WalkerBuilder struct {
 func NewWalkerBuilder(concretePath string) *WalkerBuilder {
 	return &WalkerBuilder{
 		concretePath: concretePath,
+		matchOptions: &match.MatchOptions{},
 	}
 }
 
 // WithCaseIncensitive sets the match options to be case-insensitive.
 // This modifies the Walker's behavior to ignore case when matching path segments.
 func (b *WalkerBuilder) WithCaseIncensitive() *WalkerBuilder {
-	if b.matchOptions == nil {
-		b.matchOptions = &match.MatchOptions{}
-	}
 	b.matchOptions.CaseInsensitive = true
+	return b
+}
+
+// WithKeepFirstVariable sets the variable merging policy. If true, when a
+// variable name is encountered more than once, the value from the first
+// match is kept. If false (default), the last match overwrites previous values.
+func (b *WalkerBuilder) WithKeepFirstVariable() *WalkerBuilder {
+	b.matchOptions.KeepFirstVariable = true
 	return b
 }
 
@@ -98,9 +104,7 @@ func NewWalker(path string) *Walker {
 		currDepth:         0,
 		pathSegIdx:        0,
 		segIdsCheckpoints: []int{0},
-		matchOptions: &match.MatchOptions{
-			CaseInsensitive: false, // Default to case-sensitive matching
-		},
+		matchOptions:      &match.MatchOptions{},
 	}
 }
 
@@ -234,11 +238,15 @@ func (w *Walker) Remaining() string {
 // Step operations up to the current point. The keys are variable names from
 // the path templates, and values are the matched segments from the concrete path.
 // The returned map is a copy; modifications to it will not affect the walker's internal state.
-// TODO: check same variable names at different levels
 func (w *Walker) Variables() map[string]string {
 	vars := make(map[string]string)
 	for _, v := range w.vars {
-		maps.Copy(vars, v)
+		for k, val := range v {
+			if _, exists := vars[k]; w.matchOptions.KeepFirstVariable && exists {
+				continue // Skip if the variable already exists and we're keeping the first
+			}
+			vars[k] = val
+		}
 	}
 	return vars
 }
