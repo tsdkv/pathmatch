@@ -6,6 +6,29 @@ The library is useful for routing, resource identification, or any scenario wher
 
 It also provides a `Walker` type for step-by-step path consumption against a sequence of templates.
 
+## What does PathMatch do?
+
+At its core, PathMatch checks if a given path (like a URL) conforms to a predefined template and extracts any dynamic values from it.
+
+Imagine you have a template for user profiles in your web application:
+
+**Template:** `/users/{userID}/profile`
+
+PathMatch can then process incoming paths against this template:
+
+| Incoming Path           | Does it Match? | Extracted Variables  |
+| :---------------------- | :------------- | :------------------- |
+| `/users/alice/profile`  | ✅ Yes         | `userID` = `"alice"` |
+| `/users/12345/profile`  | ✅ Yes         | `userID` = `"12345"` |
+| `/users/profile`        | ❌ No          | (None)               |
+| `/users/alice/settings` | ❌ No          | (None)               |
+
+This simple mechanism is powerful for:
+
+- **Routing:** Directing `/users/alice/profile` to the user profile handler.
+- **Authorization:** Checking if a user has access to a resource defined by a path.
+- **Data Extraction:** Getting the `userID` to fetch data from a database.
+
 ## Features
 
 - Match concrete paths against templates with literals, wildcards (`*`, `**`), and named variables.
@@ -93,6 +116,21 @@ walker.Reset()
 // walker.Variables() == map[string]string{}
 ```
 
+### Using the `WalkerBuilder`
+
+For more control over the `Walker`'s behavior, such as setting case-insensitive matching, use the `WalkerBuilder`.
+
+```go
+// Create a case-insensitive walker
+builder := pathmatch.NewWalkerBuilder("/Users/Alice/Settings")
+walker := builder.WithCaseIncensitive().Build()
+
+template, _ := pathmatch.ParseTemplate("/users/{id}")
+stepVars, ok, _ := walker.Step(template)
+// ok is true, because matching is case-insensitive
+// stepVars is map[string]string{"id": "Alice"}
+```
+
 ## Path Template Syntax
 
 Templates must start with a `/`. Path segments are separated by `/`.
@@ -137,13 +175,11 @@ Templates must start with a `/`. Path segments are separated by `/`.
 
 ## TODO
 
-- [ ] **Optional segments** (e.g., `/foo/bar?/baz`, `/foo/{var?}/baz`).
 - [ ] Options like case sensitivity, strict matching, etc.
 - [ ] Add custom types for variables, for example:
   - `/users/{id:int}/profile/{section:string}`
   - `/users/{id:uuid}/profile`
 - [ ] Support regex patterns for variable matching, e.g., `{id:[0-9]+}`.
-- [ ] Implement more complex sub-template matching, such as allowing `**` in the middle of a sub-template (e.g., `{var=prefix/**/suffix}`).
 - [ ] Fuzz testing to ensure robustness against malformed paths and templates.
 - [ ] Secutiry features, such as escaping or sanitizing paths to prevent injection attacks.
 
