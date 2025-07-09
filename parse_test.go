@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
 	"github.com/tsdkv/pathmatch"
-	"github.com/tsdkv/pathmatch/pathmatchpb"
+	"github.com/tsdkv/pathmatch/pathmatchpb/v1"
 
 	"google.golang.org/protobuf/testing/protocmp"
 )

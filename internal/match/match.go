@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/tsdkv/pathmatch/internal/utils"
-	"github.com/tsdkv/pathmatch/pathmatchpb"
+	"github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
 type MatchOptions struct {

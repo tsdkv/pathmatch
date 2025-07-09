@@ -2,7 +2,7 @@ package pathmatch
 
 import (
 	"github.com/tsdkv/pathmatch/internal/parse"
-	pmpb "github.com/tsdkv/pathmatch/pathmatchpb"
+	pmpb "github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
 // ParseTemplate parses a path template string into a structured PathTemplate object.
