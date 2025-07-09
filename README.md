@@ -175,13 +175,13 @@ Templates must start with a `/`. Path segments are separated by `/`.
 
 ## TODO
 
-- [ ] Options like case sensitivity, strict matching, etc.
 - [ ] Add custom types for variables, for example:
   - `/users/{id:int}/profile/{section:string}`
   - `/users/{id:uuid}/profile`
 - [ ] Support regex patterns for variable matching, e.g., `{id:[0-9]+}`.
 - [ ] Fuzz testing to ensure robustness against malformed paths and templates.
 - [ ] Secutiry features, such as escaping or sanitizing paths to prevent injection attacks.
+  - Add an option to limit the length of the concrete path being processed to prevent attacks with excessively long strings that consume memory.
 
 ## Contributing
 
