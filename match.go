@@ -37,17 +37,5 @@ func Match(template *pathmatchpb.PathTemplate, path string, opts ...MatchOption)
 		opt(mopts)
 	}
 
-	pathSegments := Split(path)
-
-	pathIdx := 0
-	matched, pathIdx, vars, err = match.Match(template, pathSegments, mopts)
-
-	// If we matched the template, check if we consumed all path segments
-	matched = matched && pathIdx == len(pathSegments)
-
-	if !matched {
-		vars = nil // Clear vars if not matched
-	}
-
-	return
+	return match.StrictMatch(template, path, mopts)
 }
