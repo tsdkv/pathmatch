@@ -12,6 +12,22 @@ type MatchOptions struct {
 	KeepFirstVariable bool
 }
 
+func StrictMatch(template *pathmatchpb.PathTemplate, path string, opts *MatchOptions) (matched bool, vars map[string]string, err error) {
+	pathSegments := utils.Split(path)
+
+	pathIdx := 0
+	matched, pathIdx, vars, err = Match(template, pathSegments, opts)
+
+	// If we matched the template, check if we consumed all path segments
+	matched = matched && pathIdx == len(pathSegments)
+
+	if !matched {
+		vars = nil // Clear vars if not matched
+	}
+
+	return
+}
+
 func Match(template *pathmatchpb.PathTemplate, pathSegments []string, opts *MatchOptions) (bool, int, map[string]string, error) {
 	if template == nil {
 		return false, 0, nil, errors.New("template cannot be nil")

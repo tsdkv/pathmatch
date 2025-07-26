@@ -1,10 +1,11 @@
-package pathmatch_test
+package match_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tsdkv/pathmatch"
+	"github.com/tsdkv/pathmatch/internal/match"
+	"github.com/tsdkv/pathmatch/internal/parse"
 )
 
 func equalVars(a, b map[string]string) bool {
@@ -25,7 +26,7 @@ func TestMatch(t *testing.T) {
 		path          string
 		expectedMatch bool
 		expectedVars  map[string]string
-		matchOpts     []pathmatch.MatchOption
+		matchOpts     match.MatchOptions
 	}{
 		{
 			templateStr:   "/a",
@@ -103,7 +104,9 @@ func TestMatch(t *testing.T) {
 			path:          "/cAse/iNsEnSiTiVe/Matched",
 			expectedMatch: true,
 			expectedVars:  map[string]string{"var": "Matched"},
-			matchOpts:     []pathmatch.MatchOption{pathmatch.WithCaseInsensitive()},
+			matchOpts: match.MatchOptions{
+				CaseInsensitive: true,
+			},
 		},
 		{
 			templateStr:   "/default/case/InSeNSitIvE/unmatched",
@@ -114,27 +117,13 @@ func TestMatch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.templateStr+"_"+tt.path, func(t *testing.T) {
-			template, err := pathmatch.ParseTemplate(tt.templateStr)
+			template, err := parse.ParseTemplate(tt.templateStr)
 			require.NoError(t, err, "failed to parse template: %v", err)
 
-			match, vars, err := pathmatch.Match(template, tt.path, tt.matchOpts...)
+			match, vars, err := match.StrictMatch(template, tt.path, &tt.matchOpts)
 			require.NoError(t, err, "failed to match path: %v", err)
 			require.Equal(t, tt.expectedMatch, match, "expected match to be %v", tt.expectedMatch)
 			require.True(t, equalVars(vars, tt.expectedVars), "expected vars to be %v, got %v", tt.expectedVars, vars)
 		})
-	}
-}
-
-func BenchmarkMatch(b *testing.B) {
-	template, err := pathmatch.ParseTemplate("/path/{var=**}")
-	if err != nil {
-		b.Fatalf("failed to parse template: %v", err)
-	}
-
-	for b.Loop() {
-		_, _, err := pathmatch.Match(template, "/path/to/with/more/segments")
-		if err != nil {
-			b.Fatalf("failed to match path: %v", err)
-		}
 	}
 }
