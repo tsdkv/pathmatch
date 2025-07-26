@@ -1,9 +1,10 @@
-package pathmatch
+package walker
 
 import (
 	"maps"
 
 	"github.com/tsdkv/pathmatch/internal/match"
+	"github.com/tsdkv/pathmatch/internal/utils"
 	"github.com/tsdkv/pathmatch/pathmatchpb/v1"
 )
 
@@ -47,7 +48,7 @@ func (b *WalkerBuilder) WithKeepFirstVariable() *WalkerBuilder {
 // specified in the builder. It initializes the Walker to start at the beginning
 // of the concrete path with no variables captured and a depth of 0.
 func (b *WalkerBuilder) Build() (*Walker, error) {
-	segments := Split(b.concretePath)
+	segments := utils.Split(b.concretePath)
 	return &Walker{
 		pathSegments:      segments,
 		currDepth:         0,
@@ -98,7 +99,7 @@ type Walker struct {
 //
 //	walker := NewWalker("/users/alice/settings/profile")
 func NewWalker(path string) *Walker {
-	segments := Split(path)
+	segments := utils.Split(path)
 	return &Walker{
 		pathSegments:      segments,
 		currDepth:         0,
@@ -202,7 +203,6 @@ func (w *Walker) Reset() {
 	w.currDepth = 0
 	w.segIdsCheckpoints = []int{0}
 	w.vars = nil
-	return
 }
 
 // IsComplete checks if the entire concretePath has been consumed by Step
@@ -231,7 +231,7 @@ func (w *Walker) Remaining() string {
 	if w.pathSegIdx >= len(w.pathSegments) {
 		return ""
 	}
-	return Join(w.pathSegments[w.pathSegIdx:]...)
+	return utils.Join(w.pathSegments[w.pathSegIdx:]...)
 }
 
 // Variables returns a map of all variables accumulated from all successful

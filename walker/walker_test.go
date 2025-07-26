@@ -1,10 +1,11 @@
-package pathmatch_test
+package walker_test
 
 import (
 	"testing"
 
-	pm "github.com/tsdkv/pathmatch"
+	"github.com/tsdkv/pathmatch/internal/parse"
 	pmpb "github.com/tsdkv/pathmatch/pathmatchpb/v1"
+	pwalker "github.com/tsdkv/pathmatch/walker"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -12,7 +13,7 @@ import (
 
 func mustParseTemplate(t *testing.T, pattern string) *pmpb.PathTemplate {
 	t.Helper()
-	tmpl, err := pm.ParseTemplate(pattern)
+	tmpl, err := parse.ParseTemplate(pattern)
 	require.NoError(t, err)
 	return tmpl
 }
@@ -23,7 +24,7 @@ func TestWalker_Step(t *testing.T) {
 	templateInvalid := mustParseTemplate(t, "/does/not/match")
 
 	t.Run("SingleSuccessfulStep", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice/settings/profile")
+		walker := pwalker.NewWalker("/users/alice/settings/profile")
 		stepVars, matched, err := walker.Step(templateUser)
 
 		require.NoError(t, err)
@@ -35,7 +36,7 @@ func TestWalker_Step(t *testing.T) {
 	})
 
 	t.Run("MultipleSuccessfulSteps", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice/settings/profile")
+		walker := pwalker.NewWalker("/users/alice/settings/profile")
 		_, _, _ = walker.Step(templateUser)
 		stepVars, matched, err := walker.Step(templateSettings)
 
@@ -49,7 +50,7 @@ func TestWalker_Step(t *testing.T) {
 	})
 
 	t.Run("UnsuccessfulStep", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice")
+		walker := pwalker.NewWalker("/users/alice")
 		initialDepth := walker.Depth()
 		initialVars := walker.Variables()
 		initialRemaining := walker.Remaining()
@@ -65,7 +66,7 @@ func TestWalker_Step(t *testing.T) {
 	})
 
 	t.Run("StepWithDoubleStar", func(t *testing.T) {
-		walker := pm.NewWalker("/a/b/c/d/e")
+		walker := pwalker.NewWalker("/a/b/c/d/e")
 		template := mustParseTemplate(t, "/{first}/{rest=**}")
 		stepVars, matched, err := walker.Step(template)
 
@@ -82,7 +83,7 @@ func TestWalker_StepBack(t *testing.T) {
 	templateSettings := mustParseTemplate(t, "/settings/{section}")
 
 	t.Run("StepBackAfterOneStep", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice/settings/profile")
+		walker := pwalker.NewWalker("/users/alice/settings/profile")
 		_, _, _ = walker.Step(templateUser) // Depth 1, vars {"id":"alice"}, remaining "/settings/profile"
 
 		require.Equal(t, 1, walker.Depth())
@@ -95,7 +96,7 @@ func TestWalker_StepBack(t *testing.T) {
 	})
 
 	t.Run("StepBackAfterMultipleSteps", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice/settings/profile")
+		walker := pwalker.NewWalker("/users/alice/settings/profile")
 		_, _, _ = walker.Step(templateUser) // Depth 1
 		varsAfterFirstStep := walker.Variables()
 		depthAfterFirstStep := walker.Depth()
@@ -119,7 +120,7 @@ func TestWalker_StepBack(t *testing.T) {
 	})
 
 	t.Run("StepBackAtDepthZero", func(t *testing.T) {
-		walker := pm.NewWalker("/users/alice")
+		walker := pwalker.NewWalker("/users/alice")
 		steppedBack := walker.StepBack()
 		assert.False(t, steppedBack)
 		assert.Equal(t, 0, walker.Depth())
@@ -129,7 +130,7 @@ func TestWalker_StepBack(t *testing.T) {
 
 func TestWalker_Reset(t *testing.T) {
 	originalPath := "/users/alice/settings/profile"
-	walker := pm.NewWalker(originalPath)
+	walker := pwalker.NewWalker(originalPath)
 	templateUser := mustParseTemplate(t, "/users/{id}")
 	templateSettings := mustParseTemplate(t, "/settings/{section}")
 
@@ -147,7 +148,7 @@ func TestWalker_Reset(t *testing.T) {
 }
 
 func TestWalker_IsComplete(t *testing.T) {
-	walker := pm.NewWalker("/a/b")
+	walker := pwalker.NewWalker("/a/b")
 	templateA := mustParseTemplate(t, "/a")
 	templateB := mustParseTemplate(t, "/b")
 
@@ -159,18 +160,18 @@ func TestWalker_IsComplete(t *testing.T) {
 	walker.StepBack()
 	assert.False(t, walker.IsComplete())
 
-	emptyWalker := pm.NewWalker("/") // Split("/") -> []
+	emptyWalker := pwalker.NewWalker("/") // Split("/") -> []
 	assert.True(t, emptyWalker.IsComplete())
 	assert.Equal(t, "", emptyWalker.Remaining())
 
 	// TODO: maybe we should fail on paths without leading slash?
-	emptyWalker2 := pm.NewWalker("") // Split("") -> []
+	emptyWalker2 := pwalker.NewWalker("") // Split("") -> []
 	assert.True(t, emptyWalker2.IsComplete())
 	assert.Equal(t, "", emptyWalker2.Remaining())
 }
 
 func TestWalker_Depth(t *testing.T) {
-	walker := pm.NewWalker("/a/b/c")
+	walker := pwalker.NewWalker("/a/b/c")
 	template1 := mustParseTemplate(t, "/a")
 	template2 := mustParseTemplate(t, "/b")
 
@@ -187,7 +188,7 @@ func TestWalker_Depth(t *testing.T) {
 
 func TestWalker_Remaining(t *testing.T) {
 	path := "/users/alice/settings"
-	walker := pm.NewWalker(path)
+	walker := pwalker.NewWalker(path)
 	templateUser := mustParseTemplate(t, "/users/{id}")
 	templateSettings := mustParseTemplate(t, "/settings") // Matches only "/settings"
 
@@ -207,18 +208,18 @@ func TestWalker_Remaining(t *testing.T) {
 	assert.Equal(t, path, walker.Remaining())
 
 	// Test Remaining() for root and empty paths
-	rootWalker := pm.NewWalker("/")
+	rootWalker := pwalker.NewWalker("/")
 	assert.True(t, rootWalker.IsComplete()) // Path segments are empty
 	assert.Equal(t, "", rootWalker.Remaining())
 
-	emptyWalker := pm.NewWalker("")
+	emptyWalker := pwalker.NewWalker("")
 	assert.True(t, emptyWalker.IsComplete()) // Path segments are empty
 	assert.Equal(t, "", emptyWalker.Remaining())
 }
 
 // TODO: fix this when we have a better way to handle variables
 func TestWalker_Variables(t *testing.T) {
-	walker := pm.NewWalker("/users/alice/settings/profile")
+	walker := pwalker.NewWalker("/users/alice/settings/profile")
 	templateUser := mustParseTemplate(t, "/users/{id}")
 	templateSettings := mustParseTemplate(t, "/settings/{section}")
 	// Template to test variable accumulation logic: first non-empty value for a key is kept.
@@ -238,7 +239,7 @@ func TestWalker_Variables(t *testing.T) {
 	// 1. Step with /prefix/{id=foo}/suffix -> id: "foo"
 	// 2. Step with /prefix/{id}/suffix -> id: "" (if path segment is empty)
 	// The Variables() should still report id: "foo"
-	walkerForVarLogic := pm.NewWalker("/prefix/val1/mid//suffix") // val1, then empty segment
+	walkerForVarLogic := pwalker.NewWalker("/prefix/val1/mid//suffix") // val1, then empty segment
 	tplVal1 := mustParseTemplate(t, "/prefix/{id}/mid")
 	tplEmpty := mustParseTemplate(t, "/{id}/suffix") // This will match the empty segment
 
@@ -319,7 +320,7 @@ func TestWalker_Remaining_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			walker := pm.NewWalker(tt.initialPath)
+			walker := pwalker.NewWalker(tt.initialPath)
 			for i, templatePattern := range tt.steps {
 				template := mustParseTemplate(t, templatePattern)
 				_, matched, err := walker.Step(template)
@@ -336,14 +337,14 @@ func TestWalker_Remaining_EdgeCases(t *testing.T) {
 func TestWalkerBuilder_WithOptions(t *testing.T) {
 	t.Run("WithKeepFirstVariable", func(t *testing.T) {
 		// By default, last-in-wins
-		builder := pm.NewWalkerBuilder("/a/b")
+		builder := pwalker.NewWalkerBuilder("/a/b")
 		walker, _ := builder.Build()
 		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="a"
 		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="b"
 		assert.Equal(t, map[string]string{"id": "b"}, walker.Variables())
 
 		// With the option, first-in-wins
-		builder = pm.NewWalkerBuilder("/a/b")
+		builder = pwalker.NewWalkerBuilder("/a/b")
 		walker, _ = builder.WithKeepFirstVariable().Build()
 		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="a"
 		_, _, _ = walker.Step(mustParseTemplate(t, "/{id}")) // id="b"
@@ -351,7 +352,7 @@ func TestWalkerBuilder_WithOptions(t *testing.T) {
 	})
 
 	t.Run("WithCaseIncensitive", func(t *testing.T) {
-		builder := pm.NewWalkerBuilder("/USERS/ALICE")
+		builder := pwalker.NewWalkerBuilder("/USERS/ALICE")
 		walker, _ := builder.WithCaseIncensitive().Build()
 		template := mustParseTemplate(t, "/users/{name}")
 		vars, matched, err := walker.Step(template)
